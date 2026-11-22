@@ -41,6 +41,7 @@ button{cursor:pointer}
 .sub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:20px;color:var(--mute);font-size:14px;margin-bottom:14px}
 .chips{display:flex;gap:6px}
 .chip{width:34px;height:34px;border-radius:10px;border:3px solid transparent;padding:0}
+.els{display:flex;gap:6px;flex-wrap:wrap}.els button{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px 0 6px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-weight:600;font-size:14px}.els button i{width:24px;height:24px;border-radius:50%;display:grid;place-items:center}.els button i svg{width:16px;height:16px}.els button[aria-pressed=true]{border-color:var(--ink);background:var(--raise)}.els button[aria-pressed=false]{opacity:.55}
 .chip[aria-pressed=true]{border-color:var(--ink);box-shadow:0 4px 12px rgba(0,0,0,.4)}
 /* empty state */
 .hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(18px,4vw,48px);align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:clamp(20px,4vw,44px)}
@@ -161,7 +162,7 @@ button{cursor:pointer}
     <button type="button" data-m="lines"><svg class="i"><use href="#i-lines"/></svg>ลบให้ครบเส้น</button>
     <button type="button" data-m="score"><svg class="i"><use href="#i-trophy"/></svg>ทำคะแนน</button>
   </nav>
-  <div class="sub"><div class="chips" id="gcol" hidden></div><span id="modeNote"></span></div>
+  <div class="sub"><div class="chips" id="gcol" hidden></div><div class="els" id="gel" hidden></div><span id="modeNote"></span></div>
 
   <section class="hero" id="hero">
     <div>
@@ -216,13 +217,15 @@ button{cursor:pointer}
 <script>
 {
 const N=8,SP=16,BM=32,AN=64,$=s=>document.querySelector(s);
+const ELS=[{k:"sun",n:"ดาว",c:[3],bg:"#c9a820"},{k:"snow",n:"เกล็ดหิมะ",c:[5,6],bg:"#3aa9d6"},{k:"claw",n:"กรงเล็บ",c:[7],bg:"#a744c9"},{k:"flame",n:"เปลวไฟ",c:[1,2],bg:"#d83a4b"},{k:"swirl",n:"ก้นหอย",c:[1],bg:"#a3195b"},{k:"leaf",n:"ใบไม้",c:[4],bg:"#2bb88f"}];
+const ELI={sun:'<circle cx="12" cy="12" r="3"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5M5 5l3 3M16 16l3 3M5 19l3-3M16 8l3-3"/>',snow:'<path d="M12 2v20M3.5 7l17 10M3.5 17l17-10M9 4l3 3 3-3M9 20l3-3 3 3"/>',claw:'<path d="M5 5c5 2 9 6 10 14M9 4c4 3 7 6 8 11M4 10c4 1 7 4 8 9"/>',flame:'<path d="M12 3c3 4 5 6 5 10a5 5 0 01-10 0c0-2 1-4 3-5-1 3 1 4 2 4 0-3-1-6 0-9z"/>',swirl:'<path d="M12 4a8 8 0 108 8 5 5 0 00-10 0 3 3 0 004 3"/>',leaf:'<path d="M12 20c-5-3-7-7-7-12 3 1 5 3 7 6 2-3 4-5 7-6 0 5-2 9-7 12zM12 14V6"/>'};
 const COL=["","ชมพู","ส้ม","เหลือง","เขียว","ฟ้า","น้ำเงิน","ม่วง","เทา"];
 const NOTE={stars:"นับช่องที่มีไอคอน (ดาว, เกล็ดหิมะ, กรงเล็บ ฯลฯ) ที่ถูกลบ",color:"เลือกสีที่ต้องเก็บ",lines:"ลบแถวและคอลัมน์ให้ได้มากที่สุดต่อตา",score:"ประมาณคะแนนจากจำนวนบล็อกที่ถูกเคลียร์ (รวมแรงระเบิด) + โบนัสลบหลายเส้นพร้อมกัน"};
 const MG={s:0.9837,o:0.0096},GEO={px:1.183,pc:0.544,pg:0.248,pw:0.198},DEF={x:-0.4068,y:0.0726,s:0.8432};
 const SL=[["x","ซ้าย/ขวา",-0.7,0,0.001],["y","ขึ้น/ลง",0,0.3,0.001],["s","ขนาด",0.4,1,0.001]];
 const ls=(k,v)=>{try{if(v===undefined)return JSON.parse(localStorage.getItem(k)??"null");localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}};
 const st={W:0,H:0,data:null,img:null,board:new Int8Array(64),pieces:[pz(),pz()],boxes:[],plans:[],pick:0,cal:{...DEF},found:null,
-  mode:ls("bh-mode")||"stars",gc:ls("bh-gc")||1,brush:3,pn:ls("bh-pn")||0,stone:ls("bh-stone")!==false};
+  mode:ls("bh-mode")||"stars",els:ls("bh-els")||[],gc:ls("bh-gc")||1,brush:3,pn:ls("bh-pn")||0,stone:ls("bh-stone")!==false};
 function pz(){return new Int8Array(25)}
 const lum=(r,g,b)=>0.299*r+0.587*g+0.114*b;
 function hueCls(r,g,b){const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;if(d<40)return 8;let h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h*=60;if(h<0)h+=360;
@@ -288,14 +291,15 @@ function put(b,o,r0,c0){for(const c of o.cells)if(b[(r0+c.r)*8+c0+c.c])return nu
 function clearL(b){const rows=[],cols=[];for(let r=0;r<N;r++){let f=1;for(let c=0;c<N;c++)if(!b[r*8+c]){f=0;break}if(f)rows.push(r)}
   for(let c=0;c<N;c++){let f=1;for(let r=0;r<N;r++)if(!b[r*8+c]){f=0;break}if(f)cols.push(c)}
   const res={b,rows,cols,sp:0,cc:0,rm:0,fix:0,boom:[],bombs:0,n:rows.length+cols.length};if(!res.n)return res;const n=b.slice(),q=[];
-  const kill=(i,byBomb)=>{const v=n[i];if(!v||(st.stone&&(v&15)===8))return;if(v&AN){n[i]=v&~AN;res.fix++;return}if(v&SP)res.sp++;if((v&15)===st.gc)res.cc++;if(v&BM){q.push(i);res.bombs++}res.rm++;if(byBomb)res.boom.push(i);n[i]=0};
+  const kill=(i,byBomb)=>{const v=n[i];if(!v||(st.stone&&(v&15)===8))return;if(v&AN){n[i]=v&~AN;res.fix++;return}if(iconOK(v))res.sp++;if((v&15)===st.gc)res.cc++;if(v&BM){q.push(i);res.bombs++}res.rm++;if(byBomb)res.boom.push(i);n[i]=0};
   for(let i=0;i<64;i++)if(rows.includes(i>>3)||cols.includes(i&7))kill(i,false);
   while(q.length){const i=q.shift(),r=i>>3,c=i&7;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const rr=r+dr,c2=c+dc;if(rr>=0&&rr<8&&c2>=0&&c2<8)kill(rr*8+c2,true)}}
   res.b=n;return res}
+const iconOK=v=>{if(!(v&SP))return false;if(!st.els.length)return true;const c=v&15;return st.els.some(k=>ELS.find(e=>e.k===k).c.includes(c))};
 const pts=(cl)=>cl.n?cl.rm*10+cl.fix*5+(cl.n>1?(cl.n-1)*50:0):0;
 function primary(t){return st.mode==="stars"?t.sp:st.mode==="color"?t.cc:st.mode==="lines"?t.ln:t.pt}
 function fits(b,h,w){for(let r=0;r+h<=N;r++)for(let c=0;c+w<=N;c++){let ok=1;for(let y=0;y<h&&ok;y++)for(let x=0;x<w;x++)if(b[(r+y)*8+c+x]){ok=0;break}if(ok)return 1}return 0}
-function evalB(b){let E=0,iso=0,bonus=0;const tg=st.mode==="stars"?v=>v&SP:st.mode==="color"?v=>(v&15)===st.gc:st.mode==="score"?v=>v&BM:null;
+function evalB(b){let E=0,iso=0,bonus=0;const tg=st.mode==="stars"?iconOK:st.mode==="color"?v=>(v&15)===st.gc:st.mode==="score"?v=>v&BM:null;
   for(let i=0;i<64;i++)if(!b[i]){E++;const r=i>>3,c=i&7;if((r==0||b[i-8])&&(r==7||b[i+8])&&(c==0||b[i-1])&&(c==7||b[i+1]))iso++}
   for(let l=0;l<16;l++){let e=0,s=0;for(let j=0;j<8;j++){const v=l<8?b[l*8+j]:b[j*8+l-8];if(!v)e++;else if(tg&&tg(v))s++}
     const wt=st.mode==="lines"?(e<8?1.5:0):st.mode==="score"?(e<8?1.5:0)+4*s:s;if(wt&&e)bonus+=wt*(e===1?6:e===2?3:e===3?1:0)}
@@ -320,7 +324,7 @@ const ic=n=>`<svg class="i"><use href="#i-${n}"/></svg>`;
 const NM=k=>st.pieces.length>2?["บนสุด","กลาง","ล่างสุด"][k]:st.pieces.length===2?["บน","ล่าง"][k]:"",ORD=["ก่อน","ตามด้วย","สุดท้าย"],SC=["var(--s1)","var(--s2)","var(--s3)"];
 const cc=v=>v?`c${v&15}${v&SP?" sp":""}${v&BM?" bm":""}${v&AN?" an":""}`:"";
 const presses=k=>$("#ccw").checked?(4-k)%4:k;
-function unit(t){const m=st.mode;return m==="stars"?[t.sp,"ไอคอน"]:m==="color"?[t.cc,"ช่องสี"+COL[st.gc]]:m==="lines"?[t.ln,"เส้น"]:[t.pt,"คะแนน"]}
+function unit(t){const m=st.mode;return m==="stars"?[t.sp,st.els.length===1?ELS.find(e=>e.k===st.els[0]).n:"ไอคอน"]:m==="color"?[t.cc,"ช่องสี"+COL[st.gc]]:m==="lines"?[t.ln,"เส้น"]:[t.pt,"คะแนน"]}
 function shapeHTML(o,cls){const m={};for(const c of o.cells)m[c.r+","+c.c]=c.v;let h=`<div class="mini" style="--z:15px;grid-template-columns:repeat(${o.w},15px)">`;
   for(let r=0;r<o.h;r++)for(let c=0;c<o.w;c++){const v=m[r+","+c];h+=v===undefined?`<i style="background:none"></i>`:`<i class="${cc(v)} ${cls}"></i>`}return h+"</div>"}
 function boardHTML(d,cls){const pl=new Set(d.o.cells.map(c=>(d.r+c.r)*8+d.c+c.c));let h=`<div class="mini" style="grid-template-columns:repeat(8,var(--z,17px))">`;
@@ -333,7 +337,7 @@ function render(){const a=$("#ans"),pl=st.plans[st.pick],bar=$("#barSum");
   if(pl.partial)h+=`<p class="warnline">วางได้ไม่ครบทุกชิ้น ตานี้ระวังเกมจบ</p>`;
   steps.forEach((d,j)=>{const cls="p"+(j+1),n=presses(d.o.k);
     const tags=[`<span class="tag">${ic("rot")}${(d.o.f?"พลิก แล้ว":"")+(n?`หมุน ${n} ครั้ง`:"ไม่ต้องหมุน")}</span>`,`<span class="tag">${ic("pin")}แถว ${d.r+1}${d.o.h>1?"–"+(d.r+d.o.h):""} · คอลัมน์ ${d.c+1}${d.o.w>1?"–"+(d.c+d.o.w):""}</span>`];
-    if(d.cl.n){const g=[`ลบ ${d.cl.n} เส้น`];if(d.cl.fix)g.push(`แก้บล็อกผิดปกติ ${d.cl.fix} ช่อง`);if(d.cl.bombs)g.push(`ระเบิด ${d.cl.bombs} ลูก เคลียร์เพิ่ม ${d.cl.boom.length} ช่อง`);if(st.mode==="score")g.push(`~${pts(d.cl)} คะแนน`);if(d.cl.sp)g.push(`+${d.cl.sp} ไอคอน`);if(st.mode==="color"&&d.cl.cc)g.push(`+${d.cl.cc} ช่องสี${COL[st.gc]}`);tags.push(`<span class="tag gain">${ic("burst")}${g.join(" · ")}</span>`)}
+    if(d.cl.n){const g=[`ลบ ${d.cl.n} เส้น`];if(d.cl.fix)g.push(`แก้บล็อกผิดปกติ ${d.cl.fix} ช่อง`);if(d.cl.bombs)g.push(`ระเบิด ${d.cl.bombs} ลูก เคลียร์เพิ่ม ${d.cl.boom.length} ช่อง`);if(st.mode==="score")g.push(`~${pts(d.cl)} คะแนน`);if(d.cl.sp)g.push(`+${d.cl.sp} ${st.mode==="stars"?unit({sp:0})[1]:"ไอคอน"}`);if(st.mode==="color"&&d.cl.cc)g.push(`+${d.cl.cc} ช่องสี${COL[st.gc]}`);tags.push(`<span class="tag gain">${ic("burst")}${g.join(" · ")}</span>`)}
     h+=`<div class="step"><div class="num" style="background:${SC[j]}">${j+1}</div><div><h3>${ORD[j]} ชิ้น${NM(d.pi)}</h3><div class="tags">${tags.join("")}</div>
     <div class="pair"><div><div class="lbl">รูปหลังหมุน</div>${shapeHTML(d.o,cls)}</div><div><div class="lbl">ตำแหน่งบนกระดาน</div>${boardHTML(d,cls)}</div></div></div></div>`});
   a.innerHTML=h;a.classList.remove("new");void a.offsetWidth;a.classList.add("new");
@@ -356,8 +360,10 @@ function editors(){$("#bed").innerHTML=[...st.board].map((v,i)=>`<button type="b
   $("#ped").innerHTML=st.pieces.map((p,k)=>`<div><div class="lbl">ชิ้น${NM(k)||" "+(k+1)}</div><div class="ed" style="grid-template-columns:repeat(5,auto)">${[...p].map((v,i)=>`<button type="button" data-k="${k}" data-i="${i}" class="${cc(v)}" aria-label="ชิ้นที่ ${k+1} ช่อง ${i+1}"></button>`).join("")}</div></div>`).join("")}
 function brushes(){$("#brush").innerHTML=[0,1,2,3,4,5,6,7,8,SP,BM,AN].map(b=>`<button type="button" data-b="${b}" class="${b&&b<SP?"c"+b:""}${b===SP?" sp":""}${b===BM?" bm":""}${b===AN?" an":""}" style="${b===AN?"background:var(--c6)":""}" aria-pressed="${st.brush===b}" aria-label="${b===0?"ยางลบ":b===SP?"ใส่หรือเอาไอคอนออก":b===BM?"ใส่หรือเอาระเบิดออก":b===AN?"ใส่หรือเอาสถานะผิดปกติออก":"สี"+COL[b]}">${b===0?ic("erase"):""}</button>`).join("")}
 function goalUI(){document.querySelectorAll("#mode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===st.mode));
+  const ge=$("#gel");ge.hidden=st.mode!=="stars";const all=!st.els.length;
+  ge.innerHTML=`<button type="button" data-e="" aria-pressed="${all}"><i style="background:var(--raise)">${ic("star")}</i>ทุกธาตุ</button>`+ELS.map(e=>`<button type="button" data-e="${e.k}" aria-pressed="${all||st.els.includes(e.k)}" aria-label="เก็บ${e.n}"><i style="background:${e.bg}"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${ELI[e.k]}</svg></i>${e.n}</button>`).join("");
   const g=$("#gcol");g.hidden=st.mode!=="color";g.innerHTML=[1,2,3,4,5,6,7].map(c=>`<button type="button" class="chip c${c}" data-c="${c}" aria-pressed="${st.gc===c}" aria-label="สี${COL[c]}"></button>`).join("");
-  $("#modeNote").textContent=st.mode==="color"?"เก็บสี"+COL[st.gc]:NOTE[st.mode]}
+  $("#modeNote").textContent=st.mode==="color"?"เก็บสี"+COL[st.gc]:st.mode==="stars"?(st.els.length?"นับเฉพาะ: "+st.els.map(k=>ELS.find(e=>e.k===k).n).join(", "):"นับไอคอนทุกธาตุ · แตะธาตุเพื่อเลือกเฉพาะที่ด่านต้องการ"):NOTE[st.mode]}
 function paint(arr,i){const v=arr[i],b=st.brush;if(b===0)arr[i]=0;else if(b===AN)arr[i]=v?v^AN:3|AN;else if(b===SP||b===BM)arr[i]=!v?3|b:v&b?v&~b:(v&~(SP|BM))|b;else arr[i]=(v&15)===b?0:b|(v&(SP|BM|AN))}
 function status(){const s=$("#status"),n=st.pieces.filter(p=>p.some(v=>v)).length;
   if(st.found&&!st.found.ok){s.className="status warn";s.innerHTML=`${ic("alert")}หากระดานไม่ชัด ถ้าเส้นตารางไม่ตรง ให้ปรับใน “ตรวจและแก้การอ่านภาพ”`}
@@ -385,6 +391,7 @@ document.addEventListener("dragover",e=>{e.preventDefault();$("#app").classList.
 document.addEventListener("drop",e=>{e.preventDefault();$("#app").classList.remove("over");load(e.dataTransfer.files[0])});
 document.addEventListener("paste",e=>{for(const it of e.clipboardData?.items||[])if(it.type.startsWith("image/")){load(it.getAsFile());break}});
 $("#mode").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;st.mode=b.dataset.m;ls("bh-mode",st.mode);goalUI();run()});
+$("#gel").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const k=b.dataset.e;if(!k)st.els=[];else{const on=st.els.length?st.els.includes(k):false;st.els=on?st.els.filter(x=>x!==k):[...st.els,k];if(st.els.length===ELS.length)st.els=[]}ls("bh-els",st.els);goalUI();run()});
 $("#gcol").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;st.gc=+b.dataset.c;ls("bh-gc",st.gc);goalUI();run()});
 $("#brush").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;st.brush=+b.dataset.b;brushes()});
 $("#ans").addEventListener("click",e=>{const b=e.target.closest("button[data-i]");if(b){st.pick=+b.dataset.i;render()}});
