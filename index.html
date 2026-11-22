@@ -13,7 +13,7 @@
    PICTURE: ภาพหน้าจอเกมพร้อมชิ้นบล็อกสีจริงและป้ายเลขลำดับ (ก่อนส่งภาพ: กระดานจำลองที่สาธิตแบบเดียวกัน)
    COLOUR and TYPE: กลางคืนสีครามแบบตัวเกม ดาวเหลืองเป็นสีเน้นเดียว เขียว/ฟ้า/ชมพูใช้เฉพาะบอกลำดับ ใช้ Kanit (หัวข้อ) + Sarabun (เนื้อหา)
    LAYOUT: เป้าหมาย → ภาพกับคำตอบ (จอใหญ่สองคอลัมน์ มือถือซ้อนกัน) → แก้การอ่านภาพ (พับไว้), แถบล่างค้างไว้บนมือถือสำหรับส่งภาพตาถัดไป */
-:root{color-scheme:dark;--bg:#110d26;--panel:#1a1540;--raise:#241d55;--line:#352c70;--ink:#f1edff;--mute:#aea6dc;--sun:#ffc531;--sunink:#2a1d00;--s1:#2fd47a;--s2:#38c6ff;--s3:#ff5d93;--cell:#2a2361;
+:root{color-scheme:dark;--i-sun:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%223.2%22/%3E%3Cpath d=%22M12 2v5M12 17v5M2 12h5M17 12h5M5 5l3 3M16 16l3 3M5 19l3-3M16 8l3-3%22/%3E%3C/svg%3E");--i-snow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d=%22M12 2v20M3.5 7l17 10M3.5 17l17-10M9 4l3 3 3-3M9 20l3-3 3 3%22/%3E%3C/svg%3E");--i-claw:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d=%22M5 5c5 2 9 6 10 14M9 4c4 3 7 6 8 11M4 10c4 1 7 4 8 9%22/%3E%3C/svg%3E");--i-flame:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d=%22M12 3c3 4 5 6 5 10a5 5 0 01-10 0c0-2 1-4 3-5-1 3 1 4 2 4 0-3-1-6 0-9z%22/%3E%3C/svg%3E");--i-leaf:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d=%22M12 20c-5-3-7-7-7-12 3 1 5 3 7 6 2-3 4-5 7-6 0 5-2 9-7 12zM12 14V6%22/%3E%3C/svg%3E");--bg:#110d26;--panel:#1a1540;--raise:#241d55;--line:#352c70;--ink:#f1edff;--mute:#aea6dc;--sun:#ffc531;--sunink:#2a1d00;--s1:#2fd47a;--s2:#38c6ff;--s3:#ff5d93;--cell:#2a2361;
 --c1:#e63b70;--c2:#eb6639;--c3:#fecc68;--c4:#45c46f;--c5:#4ab6bf;--c6:#6168ee;--c7:#9b5ce0;--c8:#86848f;
 --star:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7.1L12 17.3 5.8 21l1.6-7.1L2 9.2l7.1-.6z'/%3E%3C/svg%3E")}
 *{box-sizing:border-box;min-width:0}
@@ -82,7 +82,8 @@ button{cursor:pointer}
 .mini i{width:var(--z,17px);height:var(--z,17px)}
 .an::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(255,255,255,.7),rgba(255,255,255,0) 45%,rgba(255,255,255,0) 70%,rgba(255,255,255,.35));box-shadow:inset 0 0 0 2px rgba(255,255,255,.8)}
 .bm::after{content:"";position:absolute;inset:16%;border-radius:50%;background:radial-gradient(circle,#fff 0 34%,rgba(255,255,255,.35) 36% 58%,transparent 60%);box-shadow:0 0 0 2px rgba(255,255,255,.85)}
-.sp::after{content:"";position:absolute;inset:18%;background:#fff;-webkit-mask:var(--star) center/contain no-repeat;mask:var(--star) center/contain no-repeat}
+.sp::after{content:"";position:absolute;inset:16%;background:#fff;-webkit-mask:var(--ico,var(--star)) center/contain no-repeat;mask:var(--ico,var(--star)) center/contain no-repeat;filter:drop-shadow(0 0 1px rgba(0,0,0,.4))}
+.c3{--ico:var(--i-sun)}.c5,.c6{--ico:var(--i-snow)}.c7{--ico:var(--i-claw)}.c1,.c2{--ico:var(--i-flame)}.c4{--ico:var(--i-leaf)}
 .mini i.p1,.mini i.p2,.mini i.p3{z-index:1;box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--ring)}
 .p1{--ring:var(--s1)}.p2{--ring:var(--s2)}.p3{--ring:var(--s3)}
 .mini i.x{outline:2px solid #ff5d93;outline-offset:-2px}.mini i.xb{outline:2px dashed #ffc531;outline-offset:-2px}
@@ -342,6 +343,10 @@ function render(){const a=$("#ans"),pl=st.plans[st.pick],bar=$("#barSum");
     <div class="pair"><div><div class="lbl">รูปหลังหมุน</div>${shapeHTML(d.o,cls)}</div><div><div class="lbl">ตำแหน่งบนกระดาน</div>${boardHTML(d,cls)}</div></div></div></div>`});
   a.innerHTML=h;a.classList.remove("new");void a.offsetWidth;a.classList.add("new");
   bar.innerHTML=`<b>+${nv}</b> ${nu}`;draw()}
+const GLY={sun:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5M5 5l3 3M16 16l3 3M5 19l3-3M16 8l3-3"/>',snow:'<path d="M12 2v20M3.5 7l17 10M3.5 17l17-10M9 4l3 3 3-3M9 20l3-3 3 3"/>',claw:'<path d="M5 5c5 2 9 6 10 14M9 4c4 3 7 6 8 11M4 10c4 1 7 4 8 9"/>',flame:'<path d="M12 3c3 4 5 6 5 10a5 5 0 01-10 0c0-2 1-4 3-5-1 3 1 4 2 4 0-3-1-6 0-9z"/>',leaf:'<path d="M12 20c-5-3-7-7-7-12 3 1 5 3 7 6 2-3 4-5 7-6 0 5-2 9-7 12zM12 14V6"/>'};
+const glyKey=v=>{const c=v&15;return c===3?"sun":c===5||c===6?"snow":c===7?"claw":c===1||c===2?"flame":c===4?"leaf":"sun"};
+function drawGlyph(x,k,cx,cy,sz){const t=GLY[k],svg=new Path2D();const re=/d="([^"]+)"|<circle cx="([\d.]+)" cy="([\d.]+)" r="([\d.]+)"/g;let m;x.save();x.translate(cx-sz/2,cy-sz/2);x.scale(sz/24,sz/24);x.lineWidth=2.6;x.lineCap="round";x.lineJoin="round";x.strokeStyle="#fff";
+  while(m=re.exec(t)){if(m[1])x.stroke(new Path2D(m[1]));else{x.beginPath();x.arc(+m[2],+m[3],+m[4],0,7);x.stroke()}}x.restore()}
 function draw(){const cv=$("#cv");if(!st.img)return;const g=geo(),sx=Math.max(0,g.bx-g.bs*.05),sy=Math.max(0,g.by-g.bs*.04),ex=Math.min(st.W,g.bx+(GEO.px+GEO.pw+.05)*g.bs),ey=Math.min(st.H,g.by+g.bs*1.04),cw=ex-sx,ch=ey-sy;
   const sc=Math.min(1,1400/cw);cv.width=Math.round(cw*sc);cv.height=Math.round(ch*sc);const x=cv.getContext("2d");x.scale(sc,sc);x.translate(-sx,-sy);x.drawImage(st.img,0,0);x.lineWidth=Math.max(1.5,g.cs*.018);x.strokeStyle="rgba(255,197,49,.5)";
   for(let i=0;i<=8;i++){x.beginPath();x.moveTo(g.bx+i*g.cs,g.by);x.lineTo(g.bx+i*g.cs,g.by+g.bs);x.moveTo(g.bx,g.by+i*g.cs);x.lineTo(g.bx+g.bs,g.by+i*g.cs);x.stroke()}
@@ -351,7 +356,7 @@ function draw(){const cv=$("#cv");if(!st.img)return;const g=geo(),sx=Math.max(0,
     pl.steps.forEach((s,j)=>{for(const c of s.o.cells){const px=g.bx+(s.c+c.c)*g.cs+m,py=g.by+(s.r+c.r)*g.cs+m,w=g.cs-2*m;
         x.beginPath();x.roundRect(px,py,w,w,rr);x.fillStyle=pc(c.v);x.globalAlpha=.94;x.fill();x.globalAlpha=1;x.lineWidth=g.cs*.08;x.strokeStyle=scol[j];x.stroke();
         if(c.v&BM){x.beginPath();x.arc(px+w/2,py+w/2,w*.26,0,7);x.fillStyle="#fff";x.fill();x.lineWidth=w*.06;x.strokeStyle="rgba(255,255,255,.6)";x.beginPath();x.arc(px+w/2,py+w/2,w*.36,0,7);x.stroke()}
-        if(c.v&SP){x.fillStyle="#fff";x.font=`${g.cs*.42}px sans-serif`;x.textAlign="center";x.textBaseline="middle";x.fillText("★",px+w/2,py+w/2)}}
+        if(c.v&SP)drawGlyph(x,glyKey(c.v),px+w/2,py+w/2,w*.55)}
       const c0=s.o.cells[0],bx=g.bx+(s.c+c0.c)*g.cs+m,by=g.by+(s.r+c0.r)*g.cs+m,R=g.cs*.21;
       x.beginPath();x.arc(bx+R*.55,by+R*.55,R,0,7);x.fillStyle=scol[j];x.shadowColor="rgba(0,0,0,.5)";x.shadowBlur=g.cs*.08;x.shadowOffsetY=g.cs*.03;x.fill();x.shadowColor="transparent";
       x.fillStyle="#0d0b1c";x.font=`700 ${R*1.3}px Kanit,sans-serif`;x.textAlign="center";x.textBaseline="middle";x.fillText(j+1,bx+R*.55,by+R*.62)})}
