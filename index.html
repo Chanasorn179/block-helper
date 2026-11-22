@@ -216,7 +216,7 @@ button{cursor:pointer}
 {
 const N=8,SP=16,BM=32,$=s=>document.querySelector(s);
 const COL=["","ชมพู","ส้ม","เหลือง","เขียว","ฟ้า","น้ำเงิน","ม่วง","เทา"];
-const NOTE={stars:"นับช่องที่มีดาวหรือไอคอนพิเศษที่ถูกลบ",color:"เลือกสีที่ต้องเก็บ",lines:"ลบแถวและคอลัมน์ให้ได้มากที่สุดต่อตา",score:"ประมาณคะแนนจากจำนวนบล็อกที่ถูกเคลียร์ (รวมแรงระเบิด) + โบนัสลบหลายเส้นพร้อมกัน"};
+const NOTE={stars:"นับช่องที่มีไอคอน (ดาว, เกล็ดหิมะ, กรงเล็บ ฯลฯ) ที่ถูกลบ",color:"เลือกสีที่ต้องเก็บ",lines:"ลบแถวและคอลัมน์ให้ได้มากที่สุดต่อตา",score:"ประมาณคะแนนจากจำนวนบล็อกที่ถูกเคลียร์ (รวมแรงระเบิด) + โบนัสลบหลายเส้นพร้อมกัน"};
 const MG={s:0.9837,o:0.0096},GEO={px:1.183,pc:0.544,pg:0.248,pw:0.198},DEF={x:-0.4068,y:0.0726,s:0.8432};
 const SL=[["x","ซ้าย/ขวา",-0.7,0,0.001],["y","ขึ้น/ลง",0,0.3,0.001],["s","ขนาด",0.4,1,0.001]];
 const ls=(k,v)=>{try{if(v===undefined)return JSON.parse(localStorage.getItem(k)??"null");localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}};
@@ -246,12 +246,12 @@ function detectBoard(){const W=st.W,H=st.H,d=st.data,sc=Math.min(1,420/H),w=Math
   const E=best.E,sq=0,bs=E*MG.s*k,bx=(best.x0+E*MG.o)*k,by=(best.y0+E*MG.o)*k;
   return{ok:true,score:best.sc,cal:{x:(bx-W/2)/H,y:by/H,s:bs/H}}}
 function stats(x0,y0,x1,y1){const W=st.W,d=st.data;x0=Math.max(0,x0|0);y0=Math.max(0,y0|0);x1=Math.min(W-1,x1|0);y1=Math.min(st.H-1,y1|0);
-  const sp=Math.max(1,Math.floor((x1-x0)/20));let n=0,R=0,G=0,B=0,w=0,sat=0,pl=0;
-  for(let y=y0;y<=y1;y+=sp)for(let x=x0;x<=x1;x+=sp){const i=(y*W+x)*4,r=d[i],g=d[i+1],b=d[i+2];R+=r;G+=g;B+=b;sat+=Math.max(r,g,b)-Math.min(r,g,b);if(r>225&&g>215&&b>165)w++;if(r>170&&g>170&&b>170)pl++;n++}
-  n=n||1;return{L:lum(R/n,G/n,B/n),w:w/n,p:pl/n,sat:sat/n,c:hueCls(R/n,G/n,B/n)}}
+  const sp=Math.max(1,Math.floor((x1-x0)/20));let n=0,R=0,G=0,B=0,w=0,sat=0,pl=0,LL=0,L2=0;
+  for(let y=y0;y<=y1;y+=sp)for(let x=x0;x<=x1;x+=sp){const i=(y*W+x)*4,r=d[i],g=d[i+1],b=d[i+2];R+=r;G+=g;B+=b;sat+=Math.max(r,g,b)-Math.min(r,g,b);if(r>225&&g>215&&b>165)w++;if(r>170&&g>170&&b>170)pl++;const l=lum(r,g,b);LL+=l;L2+=l*l;n++}
+  n=n||1;return{L:lum(R/n,G/n,B/n),w:w/n,p:pl/n,sd:Math.sqrt(Math.max(0,L2/n-(LL/n)**2)),sat:sat/n,c:hueCls(R/n,G/n,B/n)}}
 function readBoard(){const g=geo(),b=new Int8Array(64);
   for(let i=0;i<64;i++){const cx=g.bx+((i&7)+.5)*g.cs,cy=g.by+((i>>3)+.5)*g.cs,h=g.cs*.3,q=g.cs*.16;
-    const a=stats(cx-h,cy-h,cx+h,cy+h);if(a.L<62)continue;const s=stats(cx-q,cy-q,cx+q,cy+q);b[i]=a.c|(a.p>0.22?BM:s.w>0.1?SP:0)}
+    const a=stats(cx-h,cy-h,cx+h,cy+h);if(a.L<62)continue;const s=stats(cx-q,cy-q,cx+q,cy+q);b[i]=a.c|(a.p>0.22?BM:s.w>0.1||a.sd>20?SP:0)}
   return b}
 function boxYs(n){const t=GEO.pc-(n*GEO.pg-(GEO.pg-GEO.pw))/2;return Array.from({length:n},(_,k)=>t+k*GEO.pg)}
 function darkFrac(x0,y0,w,h){const W=st.W,d=st.data;let n=0,k=0;const sx=Math.max(1,w/30|0),sy=Math.max(1,h/30|0);
@@ -269,7 +269,7 @@ function readPiece(yr){const g=geo(),bw=GEO.pw*g.bs,x0=g.bx+GEO.px*g.bs,y0=g.by+
   const out=pz();if(Mx<0)return out;
   const p=0.04*g.bs,cols=Math.min(5,Math.max(1,Math.round((Mx-mx+2)/p))),rows=Math.min(5,Math.max(1,Math.round((My-my+2)/p))),cw=(Mx-mx)/cols,ch=(My-my)/rows;
   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const cx=mx+(c+.5)*cw,cy=my+(r+.5)*ch,h=cw*.18,a=stats(cx-h,cy-h,cx+h,cy+h),H2=cw*.3,a2=stats(cx-H2,cy-H2,cx+H2,cy+H2);
-    if(a.L>95&&a.sat>50)out[r*5+c]=a.c|(a2.p>0.22?BM:a.w>0.08?SP:0)}
+    if(a.L>95&&a.sat>50)out[r*5+c]=a.c|(a2.p>0.22?BM:a.w>0.08||a2.sd>22?SP:0)}
   return out}
 /* ---------- คำนวณ ---------- */
 function cellsOf(p){const a=[];for(let i=0;i<25;i++)if(p[i])a.push({r:i/5|0,c:i%5,v:p[i]});return norm(a)}
