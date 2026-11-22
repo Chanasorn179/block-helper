@@ -79,6 +79,7 @@ button{cursor:pointer}
 .mini{display:grid;gap:3px;width:max-content;padding:3px}
 .mini i,.ed button{position:relative;display:block;border-radius:4px;background:var(--cell)}
 .mini i{width:var(--z,17px);height:var(--z,17px)}
+.an::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(255,255,255,.7),rgba(255,255,255,0) 45%,rgba(255,255,255,0) 70%,rgba(255,255,255,.35));box-shadow:inset 0 0 0 2px rgba(255,255,255,.8)}
 .bm::after{content:"";position:absolute;inset:16%;border-radius:50%;background:radial-gradient(circle,#fff 0 34%,rgba(255,255,255,.35) 36% 58%,transparent 60%);box-shadow:0 0 0 2px rgba(255,255,255,.85)}
 .sp::after{content:"";position:absolute;inset:18%;background:#fff;-webkit-mask:var(--star) center/contain no-repeat;mask:var(--star) center/contain no-repeat}
 .mini i.p1,.mini i.p2,.mini i.p3{z-index:1;box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--ring)}
@@ -189,7 +190,7 @@ button{cursor:pointer}
     <div class="fixbody">
       <div>
         <h3>กระดาน</h3>
-        <p class="note">เลือกพู่กัน แล้วแตะช่องที่อ่านผิด แตะซ้ำที่สีเดิมเพื่อลบ (★ = ดาว/ไอคอน, วงกลม = ระเบิด)</p>
+        <p class="note">เลือกพู่กัน แล้วแตะช่องที่อ่านผิด แตะซ้ำที่สีเดิมเพื่อลบ (★ = ไอคอน, วงกลม = ระเบิด, กรอบเงา = บล็อกผิดปกติ ต้องลบ 2 รอบ)</p>
         <div class="brush" id="brush"></div>
         <div class="ed" id="bed" style="grid-template-columns:repeat(8,auto)"></div>
       </div>
@@ -214,7 +215,7 @@ button{cursor:pointer}
 <div class="bar" id="bar"><div class="sum" id="barSum"></div><label class="btn pri" for="file"><svg class="i"><use href="#i-img"/></svg>ภาพตาถัดไป</label></div>
 <script>
 {
-const N=8,SP=16,BM=32,$=s=>document.querySelector(s);
+const N=8,SP=16,BM=32,AN=64,$=s=>document.querySelector(s);
 const COL=["","ชมพู","ส้ม","เหลือง","เขียว","ฟ้า","น้ำเงิน","ม่วง","เทา"];
 const NOTE={stars:"นับช่องที่มีไอคอน (ดาว, เกล็ดหิมะ, กรงเล็บ ฯลฯ) ที่ถูกลบ",color:"เลือกสีที่ต้องเก็บ",lines:"ลบแถวและคอลัมน์ให้ได้มากที่สุดต่อตา",score:"ประมาณคะแนนจากจำนวนบล็อกที่ถูกเคลียร์ (รวมแรงระเบิด) + โบนัสลบหลายเส้นพร้อมกัน"};
 const MG={s:0.9837,o:0.0096},GEO={px:1.183,pc:0.544,pg:0.248,pw:0.198},DEF={x:-0.4068,y:0.0726,s:0.8432};
@@ -249,9 +250,12 @@ function stats(x0,y0,x1,y1){const W=st.W,d=st.data;x0=Math.max(0,x0|0);y0=Math.m
   const sp=Math.max(1,Math.floor((x1-x0)/20));let n=0,R=0,G=0,B=0,w=0,sat=0,pl=0,LL=0,L2=0;
   for(let y=y0;y<=y1;y+=sp)for(let x=x0;x<=x1;x+=sp){const i=(y*W+x)*4,r=d[i],g=d[i+1],b=d[i+2];R+=r;G+=g;B+=b;sat+=Math.max(r,g,b)-Math.min(r,g,b);if(r>225&&g>215&&b>165)w++;if(r>170&&g>170&&b>170)pl++;const l=lum(r,g,b);LL+=l;L2+=l*l;n++}
   n=n||1;return{L:lum(R/n,G/n,B/n),w:w/n,p:pl/n,sd:Math.sqrt(Math.max(0,L2/n-(LL/n)**2)),sat:sat/n,c:hueCls(R/n,G/n,B/n)}}
+function ringStats(cx,cy,cs){const W=st.W,d=st.data,o=cs*.44,i0=cs*.3,sp=Math.max(1,cs/40|0);let n=0,LL=0,L2=0,pl=0;
+  for(let y=cy-o|0;y<cy+o;y+=sp)for(let x=cx-o|0;x<cx+o;x+=sp){if(Math.abs(x-cx)<i0&&Math.abs(y-cy)<i0)continue;if(x<0||y<0||x>=W||y>=st.H)continue;const i=(y*W+x)*4,r=d[i],g=d[i+1],b=d[i+2],l=lum(r,g,b);LL+=l;L2+=l*l;if(r>170&&g>170&&b>170)pl++;n++}
+  n=n||1;return{p:pl/n,sd:Math.sqrt(Math.max(0,L2/n-(LL/n)**2))}}
 function readBoard(){const g=geo(),b=new Int8Array(64);
   for(let i=0;i<64;i++){const cx=g.bx+((i&7)+.5)*g.cs,cy=g.by+((i>>3)+.5)*g.cs,h=g.cs*.3,q=g.cs*.16;
-    const a=stats(cx-h,cy-h,cx+h,cy+h);if(a.L<62)continue;const s=stats(cx-q,cy-q,cx+q,cy+q);b[i]=a.c|(a.p>0.22?BM:s.w>0.1||a.sd>20?SP:0)}
+    const a=stats(cx-h,cy-h,cx+h,cy+h);if(a.L<62)continue;const s=stats(cx-q,cy-q,cx+q,cy+q);const rg=ringStats(cx,cy,g.cs),an=rg.p>0.035&&rg.sd>20;b[i]=a.c|(a.p>0.22?BM:s.w>0.1||a.sd>20?SP:0)|(an?AN:0)}
   return b}
 function boxYs(n){const t=GEO.pc-(n*GEO.pg-(GEO.pg-GEO.pw))/2;return Array.from({length:n},(_,k)=>t+k*GEO.pg)}
 function darkFrac(x0,y0,w,h){const W=st.W,d=st.data;let n=0,k=0;const sx=Math.max(1,w/30|0),sy=Math.max(1,h/30|0);
@@ -283,12 +287,12 @@ function orients(a,flip){const out=[],seen=new Set(),bases=[[a,false]];if(flip)b
 function put(b,o,r0,c0){for(const c of o.cells)if(b[(r0+c.r)*8+c0+c.c])return null;const n=b.slice();for(const c of o.cells)n[(r0+c.r)*8+c0+c.c]=c.v;return n}
 function clearL(b){const rows=[],cols=[];for(let r=0;r<N;r++){let f=1;for(let c=0;c<N;c++)if(!b[r*8+c]){f=0;break}if(f)rows.push(r)}
   for(let c=0;c<N;c++){let f=1;for(let r=0;r<N;r++)if(!b[r*8+c]){f=0;break}if(f)cols.push(c)}
-  const res={b,rows,cols,sp:0,cc:0,rm:0,boom:[],bombs:0,n:rows.length+cols.length};if(!res.n)return res;const n=b.slice(),q=[];
-  const kill=(i,byBomb)=>{const v=n[i];if(!v||(st.stone&&(v&15)===8))return;if(v&SP)res.sp++;if((v&15)===st.gc)res.cc++;if(v&BM){q.push(i);res.bombs++}res.rm++;if(byBomb)res.boom.push(i);n[i]=0};
+  const res={b,rows,cols,sp:0,cc:0,rm:0,fix:0,boom:[],bombs:0,n:rows.length+cols.length};if(!res.n)return res;const n=b.slice(),q=[];
+  const kill=(i,byBomb)=>{const v=n[i];if(!v||(st.stone&&(v&15)===8))return;if(v&AN){n[i]=v&~AN;res.fix++;return}if(v&SP)res.sp++;if((v&15)===st.gc)res.cc++;if(v&BM){q.push(i);res.bombs++}res.rm++;if(byBomb)res.boom.push(i);n[i]=0};
   for(let i=0;i<64;i++)if(rows.includes(i>>3)||cols.includes(i&7))kill(i,false);
   while(q.length){const i=q.shift(),r=i>>3,c=i&7;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const rr=r+dr,c2=c+dc;if(rr>=0&&rr<8&&c2>=0&&c2<8)kill(rr*8+c2,true)}}
   res.b=n;return res}
-const pts=(cl)=>cl.n?cl.rm*10+(cl.n>1?(cl.n-1)*50:0):0;
+const pts=(cl)=>cl.n?cl.rm*10+cl.fix*5+(cl.n>1?(cl.n-1)*50:0):0;
 function primary(t){return st.mode==="stars"?t.sp:st.mode==="color"?t.cc:st.mode==="lines"?t.ln:t.pt}
 function fits(b,h,w){for(let r=0;r+h<=N;r++)for(let c=0;c+w<=N;c++){let ok=1;for(let y=0;y<h&&ok;y++)for(let x=0;x<w;x++)if(b[(r+y)*8+c+x]){ok=0;break}if(ok)return 1}return 0}
 function evalB(b){let E=0,iso=0,bonus=0;const tg=st.mode==="stars"?v=>v&SP:st.mode==="color"?v=>(v&15)===st.gc:st.mode==="score"?v=>v&BM:null;
@@ -314,7 +318,7 @@ function replay(pl){let b=st.board;return pl.steps.map(s=>{const before=b,placed
 /* ---------- แสดงผล ---------- */
 const ic=n=>`<svg class="i"><use href="#i-${n}"/></svg>`;
 const NM=k=>st.pieces.length>2?["บนสุด","กลาง","ล่างสุด"][k]:st.pieces.length===2?["บน","ล่าง"][k]:"",ORD=["ก่อน","ตามด้วย","สุดท้าย"],SC=["var(--s1)","var(--s2)","var(--s3)"];
-const cc=v=>v?`c${v&15}${v&SP?" sp":""}${v&BM?" bm":""}`:"";
+const cc=v=>v?`c${v&15}${v&SP?" sp":""}${v&BM?" bm":""}${v&AN?" an":""}`:"";
 const presses=k=>$("#ccw").checked?(4-k)%4:k;
 function unit(t){const m=st.mode;return m==="stars"?[t.sp,"ไอคอน"]:m==="color"?[t.cc,"ช่องสี"+COL[st.gc]]:m==="lines"?[t.ln,"เส้น"]:[t.pt,"คะแนน"]}
 function shapeHTML(o,cls){const m={};for(const c of o.cells)m[c.r+","+c.c]=c.v;let h=`<div class="mini" style="--z:15px;grid-template-columns:repeat(${o.w},15px)">`;
@@ -329,7 +333,7 @@ function render(){const a=$("#ans"),pl=st.plans[st.pick],bar=$("#barSum");
   if(pl.partial)h+=`<p class="warnline">วางได้ไม่ครบทุกชิ้น ตานี้ระวังเกมจบ</p>`;
   steps.forEach((d,j)=>{const cls="p"+(j+1),n=presses(d.o.k);
     const tags=[`<span class="tag">${ic("rot")}${(d.o.f?"พลิก แล้ว":"")+(n?`หมุน ${n} ครั้ง`:"ไม่ต้องหมุน")}</span>`,`<span class="tag">${ic("pin")}แถว ${d.r+1}${d.o.h>1?"–"+(d.r+d.o.h):""} · คอลัมน์ ${d.c+1}${d.o.w>1?"–"+(d.c+d.o.w):""}</span>`];
-    if(d.cl.n){const g=[`ลบ ${d.cl.n} เส้น`];if(d.cl.bombs)g.push(`ระเบิด ${d.cl.bombs} ลูก เคลียร์เพิ่ม ${d.cl.boom.length} ช่อง`);if(st.mode==="score")g.push(`~${pts(d.cl)} คะแนน`);if(d.cl.sp)g.push(`+${d.cl.sp} ไอคอน`);if(st.mode==="color"&&d.cl.cc)g.push(`+${d.cl.cc} ช่องสี${COL[st.gc]}`);tags.push(`<span class="tag gain">${ic("burst")}${g.join(" · ")}</span>`)}
+    if(d.cl.n){const g=[`ลบ ${d.cl.n} เส้น`];if(d.cl.fix)g.push(`แก้บล็อกผิดปกติ ${d.cl.fix} ช่อง`);if(d.cl.bombs)g.push(`ระเบิด ${d.cl.bombs} ลูก เคลียร์เพิ่ม ${d.cl.boom.length} ช่อง`);if(st.mode==="score")g.push(`~${pts(d.cl)} คะแนน`);if(d.cl.sp)g.push(`+${d.cl.sp} ไอคอน`);if(st.mode==="color"&&d.cl.cc)g.push(`+${d.cl.cc} ช่องสี${COL[st.gc]}`);tags.push(`<span class="tag gain">${ic("burst")}${g.join(" · ")}</span>`)}
     h+=`<div class="step"><div class="num" style="background:${SC[j]}">${j+1}</div><div><h3>${ORD[j]} ชิ้น${NM(d.pi)}</h3><div class="tags">${tags.join("")}</div>
     <div class="pair"><div><div class="lbl">รูปหลังหมุน</div>${shapeHTML(d.o,cls)}</div><div><div class="lbl">ตำแหน่งบนกระดาน</div>${boardHTML(d,cls)}</div></div></div></div>`});
   a.innerHTML=h;a.classList.remove("new");void a.offsetWidth;a.classList.add("new");
@@ -350,11 +354,11 @@ function draw(){const cv=$("#cv");if(!st.img)return;const g=geo(),sx=Math.max(0,
   x.textAlign="start";x.textBaseline="alphabetic"}
 function editors(){$("#bed").innerHTML=[...st.board].map((v,i)=>`<button type="button" data-i="${i}" class="${cc(v)}" aria-label="แถว ${(i>>3)+1} คอลัมน์ ${(i&7)+1}"></button>`).join("");
   $("#ped").innerHTML=st.pieces.map((p,k)=>`<div><div class="lbl">ชิ้น${NM(k)||" "+(k+1)}</div><div class="ed" style="grid-template-columns:repeat(5,auto)">${[...p].map((v,i)=>`<button type="button" data-k="${k}" data-i="${i}" class="${cc(v)}" aria-label="ชิ้นที่ ${k+1} ช่อง ${i+1}"></button>`).join("")}</div></div>`).join("")}
-function brushes(){$("#brush").innerHTML=[0,1,2,3,4,5,6,7,8,SP,BM].map(b=>`<button type="button" data-b="${b}" class="${b&&b<SP?"c"+b:""}${b===SP?" sp":""}${b===BM?" bm":""}" aria-pressed="${st.brush===b}" aria-label="${b===0?"ยางลบ":b===SP?"ใส่หรือเอาไอคอนออก":b===BM?"ใส่หรือเอาระเบิดออก":"สี"+COL[b]}">${b===0?ic("erase"):""}</button>`).join("")}
+function brushes(){$("#brush").innerHTML=[0,1,2,3,4,5,6,7,8,SP,BM,AN].map(b=>`<button type="button" data-b="${b}" class="${b&&b<SP?"c"+b:""}${b===SP?" sp":""}${b===BM?" bm":""}${b===AN?" an":""}" style="${b===AN?"background:var(--c6)":""}" aria-pressed="${st.brush===b}" aria-label="${b===0?"ยางลบ":b===SP?"ใส่หรือเอาไอคอนออก":b===BM?"ใส่หรือเอาระเบิดออก":b===AN?"ใส่หรือเอาสถานะผิดปกติออก":"สี"+COL[b]}">${b===0?ic("erase"):""}</button>`).join("")}
 function goalUI(){document.querySelectorAll("#mode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===st.mode));
   const g=$("#gcol");g.hidden=st.mode!=="color";g.innerHTML=[1,2,3,4,5,6,7].map(c=>`<button type="button" class="chip c${c}" data-c="${c}" aria-pressed="${st.gc===c}" aria-label="สี${COL[c]}"></button>`).join("");
   $("#modeNote").textContent=st.mode==="color"?"เก็บสี"+COL[st.gc]:NOTE[st.mode]}
-function paint(arr,i){const v=arr[i],b=st.brush;if(b===0)arr[i]=0;else if(b===SP||b===BM)arr[i]=!v?3|b:v&b?v&~b:(v&~(SP|BM))|b;else arr[i]=(v&15)===b?0:b|(v&(SP|BM))}
+function paint(arr,i){const v=arr[i],b=st.brush;if(b===0)arr[i]=0;else if(b===AN)arr[i]=v?v^AN:3|AN;else if(b===SP||b===BM)arr[i]=!v?3|b:v&b?v&~b:(v&~(SP|BM))|b;else arr[i]=(v&15)===b?0:b|(v&(SP|BM|AN))}
 function status(){const s=$("#status"),n=st.pieces.filter(p=>p.some(v=>v)).length;
   if(st.found&&!st.found.ok){s.className="status warn";s.innerHTML=`${ic("alert")}หากระดานไม่ชัด ถ้าเส้นตารางไม่ตรง ให้ปรับใน “ตรวจและแก้การอ่านภาพ”`}
   else{s.className="status";s.innerHTML=`${ic("ok")}อ่านกระดานแล้ว · เจอบล็อก ${n} ชิ้น · เส้นสีเหลืองควรตรงกับช่องในเกม`}}
